@@ -64,6 +64,16 @@ export default function Navbar({ cartCount = 0, onOpenCart }) {
               Home
             </NavLink>
 
+            <NavLink
+              to="/about"
+              end
+              className={({ isActive }) =>
+                `text-decoration-none ${isActive ? "text-info border-bottom border-info pb-1" : "text-light opacity-75"}`
+              }
+            >
+              About
+            </NavLink>
+
             {/* Gallery Dropdown */}
             <div className="dropdown">
               <button
@@ -125,6 +135,16 @@ export default function Navbar({ cartCount = 0, onOpenCart }) {
               }
             >
               Shop
+            </NavLink>
+
+            <NavLink
+              to="/contact"
+              end
+              className={({ isActive }) =>
+                `text-decoration-none ${isActive ? "text-info border-bottom border-info pb-1" : "text-light opacity-75"}`
+              }
+            >
+              Contact
             </NavLink>
 
             {/* Cart Button */}

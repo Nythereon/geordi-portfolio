@@ -68,12 +68,6 @@ export default function Home() {
                 line drawing, and large-scale public installations.
               </p>
               <div className="d-flex flex-wrap gap-3 justify-content-center justify-content-md-start">
-                <a
-                  href="#categories"
-                  className="btn btn-outline-light px-4 py-2 text-uppercase fw-semibold small"
-                >
-                  Explore Categories
-                </a>
                 <Link
                   to="/about"
                   className="btn btn-primary px-4 py-2 text-uppercase fw-semibold small"
@@ -112,7 +106,7 @@ export default function Home() {
                 className="text-secondary mx-auto mb-0"
                 style={{ maxWidth: "700px", fontWeight: "300" }}
               >
-                Based out of North Carolina, Geordi has spent over a decade
+                Based out of South Carolina, I have spent over a decade
                 developing a distinct aesthetic combining traditional studio
                 techniques with modern graphic influences.
               </p>
