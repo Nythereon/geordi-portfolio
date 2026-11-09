@@ -31,6 +31,15 @@ export default function Home() {
       image:
         "https://images.unsplash.com/photo-1561214115-f2f134cc4912?auto=format&fit=crop&w=1200&q=80",
     },
+    {
+      id: "commissions",
+      title: "Commissions",
+      subtitle: "Custom & Private Projects",
+      description:
+        "Tailored artwork designed for private collections, commercial spaces, and personalized creative concepts.",
+      image:
+        "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=1200&q=80",
+    },
   ];
 
   return (
