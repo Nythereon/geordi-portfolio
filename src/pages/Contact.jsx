@@ -303,12 +303,6 @@ export default function Contact() {
                     <option value="Studio Painting Purchase">
                       Studio Painting Purchase
                     </option>
-                    <option value="Print Order Support">
-                      Print Order Support
-                    </option>
-                    <option value="Exhibition / Press">
-                      Exhibition / Press Opportunity
-                    </option>
                   </select>
                 </div>
 

@@ -1,304 +1,181 @@
-import React, { useState } from "react";
-import {
-  ShoppingBag,
-  Check,
-  ShieldCheck,
-  Truck,
-  RefreshCw,
-} from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { supabase } from "../lib/supabase";
+import { ExternalLink, Sparkles } from "lucide-react";
+import LightboxModal from "../components/LightboxModal";
 
-export default function Shop({ onAddToCart }) {
-  const [selectedSizes, setSelectedSizes] = useState({});
-  const [addedItem, setAddedItem] = useState(null);
+export default function Shop() {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(null);
 
-  const sizeOptions = [
-    { label: '8" x 10"', price: 35 },
-    { label: '12" x 18"', price: 60 },
-    { label: '18" x 24"', price: 95 },
-    { label: '24" x 36"', price: 150 },
-  ];
+  useEffect(() => {
+    fetchShopItems();
+  }, []);
 
-  const prints = [
-    {
-      id: "print-1",
-      title: "Echoes in Cobalt",
-      edition: "Open Edition Giclée Print",
-      paper: "Archival Matte Cotton Rag (310 gsm)",
-      image:
-        "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=1000&q=80",
-    },
-    {
-      id: "print-2",
-      title: "Anatomy & Contour Study",
-      edition: "Limited Edition (1 of 50)",
-      paper: "Hahnemühle Photo Rag",
-      image:
-        "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1000&q=80",
-    },
-    {
-      id: "print-3",
-      title: "Ochre & Atmosphere",
-      edition: "Open Edition Giclée Print",
-      paper: "Archival Matte Cotton Rag (310 gsm)",
-      image:
-        "https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&w=1000&q=80",
-    },
-    {
-      id: "print-4",
-      title: "Botanical Line Study",
-      edition: "Open Edition Giclée Print",
-      paper: "Smooth Fine Art Paper",
-      image:
-        "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80",
-    },
-    {
-      id: "print-5",
-      title: "Composition in Crimson",
-      edition: "Limited Edition (1 of 30)",
-      paper: "Textured Velvet Fine Art Paper",
-      image:
-        "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=1000&q=80",
-    },
-    {
-      id: "print-6",
-      title: "Architectural Shadow Study",
-      edition: "Open Edition Giclée Print",
-      paper: "Archival Matte Cotton Rag",
-      image:
-        "https://images.unsplash.com/photo-1578321272176-b7bbc0679b5d?auto=format&fit=crop&w=1000&q=80",
-    },
-  ];
+  const fetchShopItems = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("shop")
+        .select("*")
+        .order("id", { ascending: false });
 
-  const getSelectedSize = (printId) => {
-    return selectedSizes[printId] || sizeOptions[1];
-  };
-
-  const handleSizeChange = (printId, size) => {
-    setSelectedSizes((prev) => ({ ...prev, [printId]: size }));
-  };
-
-  const handleAddToCart = (print) => {
-    const chosenSize = getSelectedSize(print.id);
-    const itemToAdd = {
-      id: `${print.id}-${chosenSize.label}`,
-      title: print.title,
-      size: chosenSize.label,
-      price: chosenSize.price,
-      image: print.image,
-    };
-
-    // Update global cart state in App.jsx
-    if (onAddToCart) {
-      onAddToCart(itemToAdd);
+      if (error) throw error;
+      if (data) setItems(data);
+    } catch (err) {
+      console.error("Error fetching shop items:", err.message);
+    } finally {
+      setLoading(false);
     }
-
-    // Trigger confirmation toast
-    setAddedItem(itemToAdd);
-    setTimeout(() => {
-      setAddedItem(null);
-    }, 3500);
   };
 
   return (
-    <div className="container py-5">
-      {/* Header */}
-      <div className="text-center mb-5">
-        <span className="text-info text-uppercase fw-semibold small tracking-wider mb-2 d-block">
-          Official Store
-        </span>
+    <div className="container py-5 position-relative">
+      {/* Centered Header */}
+      <div className="text-center mb-4">
         <h1
-          className="display-5 fw-bold mb-3"
+          className="display-5 fw-bold text-light mb-1"
           style={{ fontFamily: "var(--font-heading)" }}
         >
-          Fine Art Prints
+          Studio Shop
         </h1>
         <p
-          className="text-secondary mx-auto"
-          style={{ maxWidth: "640px", fontWeight: "300" }}
+          className="text-secondary small text-uppercase mb-4"
+          style={{ letterSpacing: "0.15em" }}
         >
-          Archival-quality museum prints produced on heavyweight cotton rag
-          paper using pigment-based inks. Each print is hand-checked before
-          shipping.
+          Fine art prints and original works
         </p>
       </div>
 
-      {/* Added to Cart Notification Toast */}
-      {addedItem && (
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-5 text-secondary">
+          <div
+            className="spinner-border spinner-border-sm text-info me-2"
+            role="status"
+          ></div>
+          Loading shop items...
+        </div>
+      )}
+
+      {/* Vertical Scrollable Grid */}
+      {!loading && (
         <div
-          className="position-fixed bottom-0 end-0 m-4 p-3 bg-black border border-info shadow-lg rounded-0 text-light d-flex align-items-center gap-3"
-          style={{ zIndex: 1050, maxWidth: "380px" }}
+          className="px-2"
+          style={{
+            maxHeight: "calc(100vh - 250px)",
+            overflowY: "auto",
+            overflowX: "hidden",
+            scrollbarWidth: "thin",
+            scrollbarColor: "var(--bs-secondary) transparent",
+          }}
         >
-          <div className="bg-info text-dark p-2 rounded-circle d-flex align-items-center justify-content-center">
-            <Check size={18} />
-          </div>
-          <div>
-            <p className="mb-0 fw-semibold small">Added to Cart!</p>
-            <p
-              className="mb-0 text-secondary extra-small"
-              style={{ fontSize: "0.8rem" }}
-            >
-              {addedItem.title} ({addedItem.size}) — ${addedItem.price}
-            </p>
+          <div className="row g-4 m-0">
+            {items.map((item) => {
+              let parsedLinks = [];
+              try {
+                parsedLinks = JSON.parse(item.links || "[]");
+              } catch {
+                parsedLinks = [];
+              }
+
+              return (
+                <div key={item.id} className="col-12 col-md-6 col-lg-4">
+                  <div className="card bg-black border border-secondary rounded-0 h-100 shadow-sm d-flex flex-column">
+                    <div
+                      style={{
+                        height: "300px",
+                        overflow: "hidden",
+                        position: "relative",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => setSelectedImage(item)}
+                      title="Click to view larger image"
+                    >
+                      <img
+                        src={item.image_url}
+                        alt={item.title || "Shop Artwork"}
+                        className="w-100 h-100 object-fit-cover"
+                        style={{ transition: "transform 0.3s ease" }}
+                      />
+                      <div className="position-absolute top-0 end-0 m-2">
+                        <span className="badge bg-black border border-secondary text-info rounded-0 small px-2 py-1">
+                          {item.category || "Print"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="card-body p-4 d-flex flex-column justify-content-between">
+                      <div>
+                        {(item.title?.trim() || item.price > 0) && (
+                          <div className="d-flex justify-content-between align-items-start mb-2">
+                            {item.title?.trim() && (
+                              <h3
+                                className="h6 fw-bold text-light mb-0"
+                                style={{ fontFamily: "var(--font-heading)" }}
+                              >
+                                {item.title}
+                              </h3>
+                            )}
+                            {item.price > 0 && (
+                              <span className="text-info fw-bold ms-auto">
+                                ${parseFloat(item.price).toFixed(2)}
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        {item.description && (
+                          <p
+                            className="text-secondary small mb-3"
+                            style={{ fontSize: "0.85rem" }}
+                          >
+                            {item.description}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Render compact buttons in a flex-wrap row (at least 2 side-by-side) */}
+                      {parsedLinks.length > 0 && (
+                        <div className="d-flex flex-wrap gap-2 mt-3">
+                          {parsedLinks.map((linkObj, index) => (
+                            <a
+                              key={index}
+                              href={linkObj.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn btn-info rounded-0 fw-bold text-dark text-uppercase d-flex align-items-center justify-content-center gap-1 px-2 py-1 flex-grow-1"
+                              style={{ fontSize: "0.72rem", minWidth: "110px" }}
+                            >
+                              <ExternalLink size={14} /> Buy on {linkObj.name}
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {!loading && items.length === 0 && (
+              <div className="col-12 text-center py-5">
+                <div className="p-5 bg-black border border-secondary d-inline-block mx-auto">
+                  <Sparkles className="text-secondary mb-3" size={32} />
+                  <h3 className="h6 text-light fw-bold mb-1">Shop is Empty</h3>
+                  <p className="text-secondary small mb-0">
+                    No products published yet.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* Feature Highlights */}
-      <div className="row g-4 mb-5 pb-3 border-bottom border-secondary text-center text-md-start">
-        <div className="col-12 col-md-4 d-flex align-items-center gap-3 justify-content-center justify-content-md-start">
-          <ShieldCheck className="text-info flex-shrink-0" size={28} />
-          <div>
-            <h2
-              className="h6 mb-0 fw-semibold text-uppercase"
-              style={{ fontSize: "0.8rem", letterSpacing: "0.05em" }}
-            >
-              Museum Quality
-            </h2>
-            <p
-              className="text-secondary small mb-0"
-              style={{ fontWeight: "300" }}
-            >
-              Archival inks rated for 100+ years
-            </p>
-          </div>
-        </div>
-        <div className="col-12 col-md-4 d-flex align-items-center gap-3 justify-content-center justify-content-md-start">
-          <Truck className="text-info flex-shrink-0" size={28} />
-          <div>
-            <h2
-              className="h6 mb-0 fw-semibold text-uppercase"
-              style={{ fontSize: "0.8rem", letterSpacing: "0.05em" }}
-            >
-              Worldwide Shipping
-            </h2>
-            <p
-              className="text-secondary small mb-0"
-              style={{ fontWeight: "300" }}
-            >
-              Protective flat tube packaging
-            </p>
-          </div>
-        </div>
-        <div className="col-12 col-md-4 d-flex align-items-center gap-3 justify-content-center justify-content-md-start">
-          <RefreshCw className="text-info flex-shrink-0" size={28} />
-          <div>
-            <h2
-              className="h6 mb-0 fw-semibold text-uppercase"
-              style={{ fontSize: "0.8rem", letterSpacing: "0.05em" }}
-            >
-              Satisfaction Guarantee
-            </h2>
-            <p
-              className="text-secondary small mb-0"
-              style={{ fontWeight: "300" }}
-            >
-              Full refund within 30 days
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Products Grid */}
-      <div className="row g-4">
-        {prints.map((print) => {
-          const currentSize = getSelectedSize(print.id);
-
-          return (
-            <div key={print.id} className="col-12 col-md-6 col-lg-4">
-              <div className="card bg-black text-light border-secondary h-100 shadow-sm overflow-hidden d-flex flex-column">
-                <div
-                  className="position-relative overflow-hidden"
-                  style={{ height: "320px" }}
-                >
-                  <img
-                    src={print.image}
-                    alt={print.title}
-                    className="w-100 h-100 card-img-top"
-                    style={{ objectFit: "cover" }}
-                  />
-                  <span
-                    className="position-absolute top-0 end-0 bg-black text-info border-start border-bottom border-secondary px-3 py-1 small fw-semibold text-uppercase"
-                    style={{ fontSize: "0.7rem", letterSpacing: "0.08em" }}
-                  >
-                    {print.edition}
-                  </span>
-                </div>
-
-                <div className="card-body d-flex flex-column p-4">
-                  <h3
-                    className="h5 fw-bold mb-1"
-                    style={{ fontFamily: "var(--font-heading)" }}
-                  >
-                    {print.title}
-                  </h3>
-                  <p
-                    className="text-secondary small mb-3"
-                    style={{ fontWeight: "300", fontSize: "0.825rem" }}
-                  >
-                    {print.paper}
-                  </p>
-
-                  <div className="mb-4 mt-auto">
-                    <label
-                      className="form-label text-uppercase small text-muted mb-2"
-                      style={{ fontSize: "0.7rem", letterSpacing: "0.08em" }}
-                    >
-                      Select Dimensions:
-                    </label>
-                    <div
-                      className="d-grid grid-2 gap-2"
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                      }}
-                    >
-                      {sizeOptions.map((sz) => (
-                        <button
-                          key={sz.label}
-                          type="button"
-                          onClick={() => handleSizeChange(print.id, sz)}
-                          className={`btn btn-sm rounded-0 border-secondary ${
-                            currentSize.label === sz.label
-                              ? "btn-info text-dark fw-bold"
-                              : "btn-outline-secondary text-light"
-                          }`}
-                          style={{ fontSize: "0.75rem" }}
-                        >
-                          {sz.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="d-flex align-items-center justify-content-between pt-3 border-top border-secondary">
-                    <div>
-                      <span
-                        className="text-secondary small d-block"
-                        style={{ fontSize: "0.7rem" }}
-                      >
-                        Price
-                      </span>
-                      <span
-                        className="h4 fw-bold mb-0 text-light"
-                        style={{ fontFamily: "var(--font-heading)" }}
-                      >
-                        ${currentSize.price}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => handleAddToCart(print)}
-                      className="btn btn-outline-info rounded-0 text-uppercase fw-semibold small d-flex align-items-center gap-2 px-3 py-2"
-                      style={{ fontSize: "0.75rem", letterSpacing: "0.08em" }}
-                    >
-                      <ShoppingBag size={15} /> Add to Cart
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <LightboxModal
+        selectedImage={selectedImage}
+        onClose={() => setSelectedImage(null)}
+      />
     </div>
   );
 }

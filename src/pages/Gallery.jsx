@@ -1,214 +1,216 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { supabase } from "../lib/supabase";
+import { Sparkles } from "lucide-react";
+
+import LightboxModal from "../components/LightboxModal";
 
 export default function Gallery() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeCategory = searchParams.get("category") || "all";
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(null);
 
-  // Specific artwork data matching categories accurately
-  const artworks = [
-    // PAINTINGS
-    {
-      id: 1,
-      title: "Echoes in Cobalt",
-      category: "paintings",
-      medium: "Oil on Stretched Canvas",
-      dimensions: '36" x 48"',
-      image:
-        "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=1000&q=80",
-    },
-    {
-      id: 2,
-      title: "Ochre & Atmosphere",
-      category: "paintings",
-      medium: "Acrylic & Mixed Media on Wood Panel",
-      dimensions: '30" x 40"',
-      image:
-        "https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&w=1000&q=80",
-    },
-    {
-      id: 3,
-      title: "Composition in Crimson",
-      category: "paintings",
-      medium: "Oil on Linen",
-      dimensions: '24" x 36"',
-      image:
-        "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=1000&q=80",
-    },
+  // Sync activeTab with URL search param '?category=...' (default to 'All')
+  const categoryParam = searchParams.get("category");
 
-    // DRAWINGS & SKETCHES
-    {
-      id: 4,
-      title: "Anatomy & Contour Study",
-      category: "drawings",
-      medium: "Charcoal & Graphite on Archival Paper",
-      dimensions: '18" x 24"',
-      image:
-        "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1000&q=80",
-    },
-    {
-      id: 5,
-      title: "Botanical Line Study",
-      category: "drawings",
-      medium: "Fine Line Ink & Wash",
-      dimensions: '12" x 16"',
-      image:
-        "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80",
-    },
-    {
-      id: 6,
-      title: "Architectural Shadow Study",
-      category: "drawings",
-      medium: "Graphite on Heavyweight Cotton Rag",
-      dimensions: '16" x 20"',
-      image:
-        "https://images.unsplash.com/photo-1578321272176-b7bbc0679b5d?auto=format&fit=crop&w=1000&q=80",
-    },
+  const getTabFromParam = (param) => {
+    if (!param || param.toLowerCase() === "all") return "All";
+    if (param.toLowerCase().includes("draw")) return "Drawings";
+    if (param.toLowerCase().includes("paint")) return "Paintings";
+    if (param.toLowerCase().includes("mural")) return "Murals";
+    if (param.toLowerCase().includes("commission")) return "Commissions";
+    return "All";
+  };
 
-    // MURALS & INSTALLATIONS
-    {
-      id: 7,
-      title: "Urban Reflection Wall",
-      category: "murals",
-      medium: "Exterior Aerosol & Acrylic Mural",
-      dimensions: "14ft x 40ft — Charlotte, NC",
-      image:
-        "https://images.unsplash.com/photo-1561214115-f2f134cc4912?auto=format&fit=crop&w=1000&q=80",
-    },
-    {
-      id: 8,
-      title: "Geometric Horizon",
-      category: "murals",
-      medium: "Interior Architectural Wall Installation",
-      dimensions: "10ft x 22ft — Private Atrium",
-      image:
-        "https://images.unsplash.com/photo-1508873696983-2df515122519?auto=format&fit=crop&w=1000&q=80",
-    },
-    {
-      id: 9,
-      title: "Spectral Flora Mural",
-      category: "murals",
-      medium: "Public Aerosol Installation",
-      dimensions: "18ft x 50ft — Raleigh, NC",
-      image:
-        "https://images.unsplash.com/photo-1572949645841-094f3a9c4c94?auto=format&fit=crop&w=1000&q=80",
-    },
-  ];
+  const activeTab = getTabFromParam(categoryParam);
 
-  const filteredArtworks =
-    activeCategory === "all"
-      ? artworks
-      : artworks.filter((item) => item.category === activeCategory);
+  useEffect(() => {
+    fetchGalleryItems();
+  }, []);
+
+  const fetchGalleryItems = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("gallery")
+        .select("*")
+        .order("id", { ascending: false });
+
+      if (error) throw error;
+      if (data) setItems(data);
+    } catch (err) {
+      console.error("Error fetching gallery items:", err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTabChange = (category) => {
+    if (category === "All") {
+      setSearchParams({});
+    } else {
+      setSearchParams({ category: category.toLowerCase() });
+    }
+  };
+
+  // Filter items based on active category tab
+  const filteredItems = items.filter((item) => {
+    if (activeTab === "All") return true;
+    return item.category?.toLowerCase() === activeTab.toLowerCase();
+  });
+
+  const categories = ["All", "Drawings", "Paintings", "Murals", "Commissions"];
 
   return (
-    <div className="container py-5">
-      {/* Header */}
-      <div className="text-center mb-5">
-        <span className="text-info text-uppercase fw-semibold small tracking-wider mb-2 d-block">
-          Portfolio Archive
-        </span>
+    <div className="container py-5 position-relative">
+      {/* Centered Gallery Header */}
+      <div className="text-center mb-4">
         <h1
-          className="display-5 fw-bold mb-3"
+          className="display-5 fw-bold text-light mb-1"
           style={{ fontFamily: "var(--font-heading)" }}
         >
-          Selected Works
+          Studio Gallery
         </h1>
         <p
-          className="text-secondary mx-auto"
-          style={{ maxWidth: "600px", fontWeight: "300" }}
+          className="text-secondary small text-uppercase mb-4"
+          style={{ letterSpacing: "0.15em" }}
         >
-          A curated collection of studio paintings, observational drawings, and
-          site-specific public mural installations.
+          Original Works & Custom Commissions
         </p>
-      </div>
 
-      {/* Category Filter Pills */}
-      <div className="d-flex justify-content-center gap-2 mb-5 flex-wrap">
-        {[
-          { label: "All Works", value: "all" },
-          { label: "Paintings", value: "paintings" },
-          { label: "Drawings & Sketches", value: "drawings" },
-          { label: "Murals & Installations", value: "murals" },
-        ].map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() =>
-              setSearchParams(
-                tab.value === "all" ? {} : { category: tab.value },
-              )
-            }
-            className={`btn btn-sm px-4 py-2 rounded-0 text-uppercase fw-semibold ${
-              activeCategory === tab.value
-                ? "btn-info text-dark"
-                : "btn-outline-secondary text-light"
-            }`}
-            style={{ fontSize: "0.75rem", letterSpacing: "0.08em" }}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Artwork Grid */}
-      <div className="row g-4">
-        {filteredArtworks.map((art) => (
-          <div key={art.id} className="col-12 col-md-6 col-lg-4">
-            <div className="card bg-black text-light border-secondary h-100 shadow-sm overflow-hidden group-hover">
-              <div
-                className="position-relative overflow-hidden"
-                style={{ height: "300px" }}
+        {/* Category Navigation Tabs */}
+        <div className="d-flex justify-content-center flex-wrap gap-2 mb-4">
+          {categories.map((category) => {
+            const isActive = activeTab === category;
+            return (
+              <button
+                key={category}
+                onClick={() => handleTabChange(category)}
+                className={`btn rounded-0 text-uppercase fw-semibold px-3 py-2 ${
+                  isActive
+                    ? "btn-info text-dark border-info"
+                    : "btn-dark text-secondary border-secondary"
+                }`}
+                style={{ fontSize: "0.8rem", letterSpacing: "0.05em" }}
               >
-                <img
-                  src={art.image}
-                  className="w-100 h-100 card-img-top"
-                  alt={art.title}
-                  style={{
-                    objectFit: "cover",
-                    transition: "transform 0.4s ease-in-out",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.transform = "scale(1.05)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.transform = "scale(1)")
-                  }
-                />
-              </div>
-
-              <div className="card-body d-flex flex-column p-4">
-                <span
-                  className="text-info text-uppercase fw-semibold mb-1"
-                  style={{ letterSpacing: "0.1em", fontSize: "0.7rem" }}
-                >
-                  {art.category === "paintings"
-                    ? "Painting"
-                    : art.category === "drawings"
-                      ? "Drawing"
-                      : "Mural"}
-                </span>
-                <h2
-                  className="h5 fw-bold mb-2"
-                  style={{ fontFamily: "var(--font-heading)" }}
-                >
-                  {art.title}
-                </h2>
-                <p
-                  className="text-secondary small mb-1"
-                  style={{ fontWeight: "300" }}
-                >
-                  {art.medium}
-                </p>
-                <p
-                  className="text-muted small mb-0"
-                  style={{ fontSize: "0.8rem" }}
-                >
-                  {art.dimensions}
-                </p>
-              </div>
-            </div>
-          </div>
-        ))}
+                {category}
+              </button>
+            );
+          })}
+        </div>
       </div>
+
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-5 text-secondary">
+          <div
+            className="spinner-border spinner-border-sm text-info me-2"
+            role="status"
+          ></div>
+          Loading gallery items...
+        </div>
+      )}
+
+      {/* Gallery Grid */}
+      {!loading && (
+        <div
+          className="px-2"
+          style={{
+            maxHeight: "calc(100vh - 280px)",
+            overflowY: "auto",
+            overflowX: "hidden",
+            scrollbarWidth: "thin",
+            scrollbarColor: "var(--bs-secondary) transparent",
+          }}
+        >
+          <div className="row g-4 m-0">
+            {filteredItems.map((item) => {
+              const hasContent = Boolean(
+                item.title?.trim() || item.description?.trim(),
+              );
+
+              return (
+                <div key={item.id} className="col-12 col-md-6 col-lg-4">
+                  <div className="card bg-black border border-secondary rounded-0 h-100 shadow-sm overflow-hidden">
+                    <div
+                      style={{
+                        height: "360px",
+                        position: "relative",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => setSelectedImage(item)}
+                      title="Click to view larger image"
+                    >
+                      <img
+                        src={item.image_url}
+                        alt={item.title || "Gallery Artwork"}
+                        className="w-100 h-100 object-fit-cover"
+                        style={{ transition: "transform 0.3s ease" }}
+                      />
+
+                      {/* Category Badge */}
+                      <div className="position-absolute top-0 end-0 m-2">
+                        <span className="badge bg-black border border-secondary text-info rounded-0 small px-2 py-1">
+                          {item.category || "Artwork"}
+                        </span>
+                      </div>
+
+                      {/* Compact Bottom Overlay for Title/Description */}
+                      {hasContent && (
+                        <div
+                          className="position-absolute bottom-0 start-0 w-100 p-3"
+                          style={{
+                            background:
+                              "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.7) 70%, transparent 100%)",
+                          }}
+                        >
+                          {item.title?.trim() && (
+                            <h3
+                              className="h6 fw-bold text-light mb-1 text-truncate"
+                              style={{ fontFamily: "var(--font-heading)" }}
+                            >
+                              {item.title}
+                            </h3>
+                          )}
+
+                          {item.description?.trim() && (
+                            <p
+                              className="text-secondary extra-small mb-0 text-truncate"
+                              style={{ fontSize: "0.78rem" }}
+                            >
+                              {item.description}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {!loading && filteredItems.length === 0 && (
+              <div className="col-12 text-center py-5">
+                <div className="p-5 bg-black border border-secondary d-inline-block mx-auto">
+                  <Sparkles className="text-secondary mb-3" size={32} />
+                  <h3 className="h6 text-light fw-bold mb-1">
+                    No Artwork Found
+                  </h3>
+                  <p className="text-secondary small mb-0">
+                    No items found under the "{activeTab}" category.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Image Preview Modal */}
+      <LightboxModal
+        selectedImage={selectedImage}
+        onClose={() => setSelectedImage(null)}
+      />
     </div>
   );
 }

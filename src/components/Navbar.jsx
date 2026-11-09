@@ -28,7 +28,7 @@ export default function Navbar({ cartCount = 0, onOpenCart }) {
               letterSpacing: "0.04em",
             }}
           >
-            Visual Artist
+            Geordi's Paint & Pencils
           </span>
         </NavLink>
 
@@ -125,6 +125,14 @@ export default function Navbar({ cartCount = 0, onOpenCart }) {
                     Murals & Installations
                   </button>
                 </li>
+                <li>
+                  <button
+                    className="dropdown-item small text-uppercase py-2"
+                    onClick={() => handleCategorySelect("commissions")}
+                  >
+                    Commissions
+                  </button>
+                </li>
               </ul>
             </div>
 
@@ -146,14 +154,6 @@ export default function Navbar({ cartCount = 0, onOpenCart }) {
             >
               Contact
             </NavLink>
-
-            {/* Cart Button */}
-            <button
-              onClick={onOpenCart}
-              className="btn btn-outline-light btn-sm d-flex align-items-center gap-1 rounded-0 mt-2 mt-md-0"
-            >
-              <ShoppingBag size={15} /> Cart ({cartCount})
-            </button>
           </div>
         </div>
       </div>

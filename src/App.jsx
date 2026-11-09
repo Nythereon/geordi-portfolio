@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import { HashRouter as Router, Routes, Route } from "react-router-dom"; // <-- Change to HashRouter
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import CartDrawer from "./components/CartDrawer";
 import Home from "./pages/Home";
 import Gallery from "./pages/Gallery";
 import Shop from "./pages/Shop";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import Admin from "./pages/Admin";
 
 export default function App() {
   const [cart, setCart] = useState([]);
@@ -63,19 +63,11 @@ export default function App() {
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/shop" element={<Shop onAddToCart={addToCart} />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/admin" element={<Admin />} />
           </Routes>
         </main>
 
         <Footer />
-
-        {/* Slide-over Cart Drawer */}
-        <CartDrawer
-          isOpen={isCartOpen}
-          onClose={() => setIsCartOpen(false)}
-          cart={cart}
-          onUpdateQuantity={handleUpdateQuantity}
-          onRemoveItem={handleRemoveItem}
-        />
       </div>
     </Router>
   );
